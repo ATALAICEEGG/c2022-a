@@ -7,25 +7,27 @@
 #include<mmsystem.h>
 #include<time.h>
 #pragma comment(lib, "winmm.lib")
+#define _CRT_SECURE_NO_WARNINGS
 
 IMAGE gImage, img;
 MOUSEMSG msg = { 0 };
 
 void drawmap();//画棋盘
-void search(MOUSEMSG msg);
-int AIgo();//AI下棋
+void search(MOUSEMSG msg, struct record p[15][15]);
+int AIgo(struct record p[15][15]);//AI下棋
 int judge(struct record p[15][15]);//判断是否输赢
 void FINAL(int a);//结束显示
 void init(struct record p[15][15]);//初始化
 
-void chessdown(int i,int a,int b);
+void chessdown(int i, int a, int b, struct record p[15][15]);
+double assess(struct record p[15][15]);
 void p_assess(struct record p[15][15]);
 void start(struct record p[15][15]);
-double calculation(struct record p, int turn,int times, double a, double b);
+double calculation(struct record p[15][15], int turn, int times, double a, double b);
 
 
 int main(){
-	
+	struct record p[15][15];
 	start(p);
 	
 	return 0;
@@ -34,7 +36,7 @@ int main(){
 
 
 
-int AIgo(){
+int AIgo(struct record p[15][15]){
 	int t, m, n;
 	int  v,lastv = 0, r=0, l=0;//r,l用于记录最佳落棋位置
 	v = minv;
@@ -53,34 +55,39 @@ int AIgo(){
 				if (t != 0){
 					p[i][j].place = 1;
 					if (judge(p) == 1){
-						chessdown(1, i, j);
+						chessdown(1, i, j,p);
 						return 0;
 					}
-					p[i][j].totalvalue = calculation(p, 2, 2, minv, maxv);
+					p[i][j].totalvalue = calculation(p, 1, 2, minv, maxv);
 					p[i][j].place = 0;
-					if (v < abs(p[i][j].value))	{
-						v = abs(p[i][j].value);
+					if (v < abs(p[i][j].totalvalue))	{
+						v = abs(p[i][j].totalvalue);
 						r = i, l = j;
 					}
 				}
 			}
 		}
 	}
-	chessdown(1,r, l);
+	chessdown(1,r, l,p);
 	return 0;
 }
 
 
-double calculation(struct record p[15][15], int turn, int times, int a, int b){
-	double v = 0, lastv=minv;
-	int i, j,t=0;
+double calculation(struct record p[15][15], int turn, int times,double a,double b){
+	double v = 0, lastv=0;
+	int i, j,t=0,left=0;
 	if (judge(p)>0||times == 0){
 		return assess(p);
 	}
-	if (turn == 1){
+	else if (turn == 1){
 		for (i = 0; i < row; i++){
+			if (left==1)
+			{
+				break;
+			}
 			for (j = 0; j < row; j++){
 				if (p[i][j].place == 0){
+
 					t = 0;
 					for (int m = -1; m < 2; m++) {
 						for (int n = -1; n < 2; n++) {
@@ -93,21 +100,28 @@ double calculation(struct record p[15][15], int turn, int times, int a, int b){
 						v = minv;
 					}
 					else{
-						p[i][j].place = 1;    //棋下在这个地方
+						p[i][j].place = 1;   
 						v = calculation(p, (turn + 1) % 2, times - 1, a, b);
-						p[i][j].place = 0;      //撤回
+						p[i][j].place = 0;
 					}
+
+
+					if (a < v){//找最大值
+						
+						a = v;
 					}
-					
-				if (lastv < v){
-					lastv = v;
-				}		
+					if (b < a){
+						left = 1;
+						break;
+					}
+				}
 			}
 		}
-		return v;
+		return a;
 	}
 	else if (turn == 0){
 		for (i = 0; i < row; i++){
+
 			for (j = 0; j < row; j++){
 				if (p[i][j].place == 0){
 					t = 0;
@@ -122,36 +136,46 @@ double calculation(struct record p[15][15], int turn, int times, int a, int b){
 						v = maxv;
 					}
 					else{
-						p[i][j].place = -1;    //棋下在这个地方
+						p[i][j].place = -1;  
 						v = calculation(p, (turn + 1) % 2, times - 1, a, b);
-						p[i][j].place = 0;      //撤回
+						p[i][j].place = 0;     
 					}
-				}
 
-				if (lastv > v){
-					lastv = v;
+					if (b > v){//找最小值
+					
+						b = lastv;
+					}
+					if (b < a)
+					{
+						left= 1;
+						break;
+					}
 				}
 			}
 		}
-		return v;
+		return b;
 	}
+	return 0;
 }
 
 
 
-void chessdown(int i,int a, int b){
+void chessdown(int i, int a, int b, struct record p[15][15]){
 	int x = side + (b * (cell));
 	int y = side + (a * (cell));
 	if (i == -1){
 		setfillcolor(BLACK);
-		p[chessl][chessr].place = -1;
+		p[a][b].place = -1;
 		solidcircle(x, y, 20);
+		chessl = a;
+		chessr = b;
 	}
-	else{
+	else if(i==1){
 		setfillcolor(WHITE);
-		p[chessl][chessr].place = 1;
+		p[a][b].place = 1;
 		solidcircle(x, y, 20);
 	}
+	else   printf("程序错误\n");
 }
 
 
@@ -186,7 +210,7 @@ void drawmap(){
 
 
 void FINAL(int a){
-	struct record pp[15][15];
+	
 	if (a >0){
 		settextstyle(42, 20, _T("隶书"));
 		setbkmode(TRANSPARENT);
@@ -203,23 +227,28 @@ void FINAL(int a){
 		fillrectangle(380, 390, 480, 450);
 		outtextxy(100, 400, _T("重新开始"));
 		outtextxy(400, 400, _T("退出"));
-	}
-	while (true)
-	{
-		MOUSEMSG n;//鼠标信息
-		n = GetMouseMsg();
-		switch (n.uMsg) {
-		case WM_LBUTTONDOWN:
-			if (n.x <= 280 && n.x >= 100 && n.y <= 450 && n.y >= 390)
-				start(pp);   //返回游戏界面
-			if (n.x <= 480 && n.x >= 380 && n.y <= 450 && n.y >= 390)
-			{
-				_getch();
-				closegraph(); // 关闭绘图窗口
-				exit(0);    //强制退出
+
+		while (1)
+		{
+			MOUSEMSG n;//鼠标信息
+			n = GetMouseMsg();
+			switch (n.uMsg) {
+			case WM_LBUTTONDOWN:
+				if (n.x <= 280 && n.x >= 100 && n.y <= 450 && n.y >= 390){
+					struct record pp[15][15];
+					start(pp);   //返回游戏界面
+				}
+
+				if (n.x <= 480 && n.x >= 380 && n.y <= 450 && n.y >= 390)
+				{
+					/*_getch();*/
+					closegraph(); // 关闭绘图窗口
+					exit(0);    //强制退出
+				}
 			}
 		}
 	}
+	
 }
 
 
@@ -304,15 +333,15 @@ double assess(struct record p[15][15])
 {
 	int i, j;
 	p_assess(p);     //某点价值评定
-	double sumvalue = 0;
+	double sum = 0;
 	for (i = 0; i < row; i++)
 	{
 		for (j = 0; j < row; j++)
 		{
-			sumvalue += p[i][j].value;//棋盘总优势分为所有点分数的和
+			sum += p[i][j].value;//棋盘总优势分为所有点分数的和
 		}
 	}
-	return sumvalue;
+	return sum;
 }
 
 void p_assess(struct record p[15][15]){
@@ -327,7 +356,7 @@ void p_assess(struct record p[15][15]){
 			}
 			else  
 			{   
-				long double v1 = V, v2 = V, v3 = V, v4 = V, v5 = V, v6 = V, v7 = V, v8 = V;
+				double v1 = V, v2 = V, v3 = V, v4 = V, v5 = V, v6 = V, v7 = V, v8 = V;
 
 				for (x = 0, n = j; p[i][j].place != -p[i][n + 1].place && n + 1 < 15 && x < 4;)       //右
 				{
@@ -434,9 +463,9 @@ void p_assess(struct record p[15][15]){
 				}
 				p[i][j].value 
 					= v1 + v2 + v3 + v4 + v5 + v6 + v7 + v8 + 0.1 * (15 - abs(i - 7) - abs(j - 7));    //加上距离中心优势分
-				if (p[i][j].place == -1)    //注：玩家棋子为负分
+				if (p[i][j].place == -1)   
 				{
-					p[i][j].value = -p[i][j].value * 10;       //E为偏向防守程度
+					p[i][j].value = -p[i][j].value * 10;    
 				}
 			}
 		}
@@ -448,30 +477,27 @@ void p_assess(struct record p[15][15]){
 void start(struct record p[15][15]){
 	init(p);
 	drawmap();
-	//srand((unsigned int)time(NULL));
-	//change = rand() % 10;
 	while (1){
 		msg = GetMouseMsg();
-		/*if (change % 2 == 0)*/
+	
 		if (msg.uMsg == WM_LBUTTONDOWN)
 		{
-			search(msg);
+			search(msg,p);
 			if (play != true)		continue;
 			int pass = judge(p);
 			FINAL(pass);
 
-			AIgo();
+			AIgo(p);
 			pass = judge(p);
 			FINAL(pass);
 		}
 
-		//change = change % 2 + 1;
 	}
 }
 
 
 
-void search(MOUSEMSG msg){//把棋子下到格子上
+void search(MOUSEMSG msg, struct record p[15][15]){//把棋子下到格子上
 
 	int x, y, r0, l0;
 	l0 = msg.x / cell;/*算出棋子下在的左上角点第几列*/
@@ -486,7 +512,7 @@ void search(MOUSEMSG msg){//把棋子下到格子上
 	if (p[chessl][chessr].place == 0){//确认原地点无棋子-》下棋成功？
 
 		play = true;
-		chessdown(-1,chessr,chessl);
+		chessdown(-1,chessr,chessl,p);
 
 	}
 	else

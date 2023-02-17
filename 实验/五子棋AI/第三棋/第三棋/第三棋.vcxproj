@@ -76,7 +76,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="大佬的棋.cpp" />
     <ClCompile Include="第一.cpp" />
   </ItemGroup>
   <ItemGroup>

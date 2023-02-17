@@ -9,8 +9,7 @@ bool play = false;
 int chessr = 0, chessl = 0, chessx = 0, chessy = 0;
 struct record {
 	int place;          //位置的状态    玩家-1,   空位置0,   电脑1
-	int  value;        //该点价值分
+	double  value;        //该点价值分
 	int totalvalue;        //下一步棋下这点时棋盘的总优势分	
 
 };
-struct record p[15][15];
