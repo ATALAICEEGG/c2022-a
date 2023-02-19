@@ -20,10 +20,10 @@ void FINAL(int a);//结束显示
 void init(struct record p[15][15]);//初始化
 
 void chessdown(int i, int a, int b, struct record p[15][15]);
-double assess(struct record p[15][15]);
+long double assess(struct record p[15][15]);
 void p_assess(struct record p[15][15]);
 void start(struct record p[15][15]);
-double calculation(struct record p[15][15], int turn, int times, double a, double b);
+long double calculation(struct record p[15][15], int turn, int times, long double a, long double b);
 
 
 int main(){
@@ -38,8 +38,8 @@ int main(){
 
 int AIgo(struct record p[15][15]){
 	int t, m, n;
-	int  v,lastv = 0, r=0, l=0;//r,l用于记录最佳落棋位置
-	v = minv;
+	int  r=7, l=7;//r,l用于记录最佳落棋位置
+	long double v = minv;
 	for (int i = 0; i < 15; i++){
 		for (int j = 0; j < 15; j++){
 			
@@ -61,8 +61,8 @@ int AIgo(struct record p[15][15]){
 					}
 					p[i][j].totalvalue = calculation(p, 1, 2, minv, maxv);
 					p[i][j].place = 0;
-					if (v < abs(p[i][j].totalvalue))	{
-						v = abs(p[i][j].totalvalue);
+					if (v < p[i][j].totalvalue)	{
+						v = p[i][j].totalvalue;
 						r = i, l = j;
 					}
 				}
@@ -74,13 +74,13 @@ int AIgo(struct record p[15][15]){
 }
 
 
-double calculation(struct record p[15][15], int turn, int times,double a,double b){
-	double v = 0, lastv=0;
+long double calculation(struct record p[15][15], int turn, int times,long double a,long double b){
+	long double v = 0;
 	int i, j,t=0,left=0;
 	if (judge(p)>0||times == 0){
 		return assess(p);
 	}
-	else if (turn == 1){
+	else if (turn == 1){                 //AI
 		for (i = 0; i < row; i++){
 			if (left==1)
 			{
@@ -89,14 +89,20 @@ double calculation(struct record p[15][15], int turn, int times,double a,double 
 			for (j = 0; j < row; j++){
 				if (p[i][j].place == 0){
 
-					t = 0;
-					for (int m = -1; m < 2; m++) {
-						for (int n = -1; n < 2; n++) {
-							if (p[m + i][n + j].place != 0) {
-								t++;
+					if (num < 50){
+						t = 0;
+						for (int m = -1; m < 2; m++) {
+							for (int n = -1; n < 2; n++) {
+								if (p[m + i][n + j].place != 0) {
+									t++;
+								}
+
 							}
 						}
+
 					}
+					else     t = 1;
+
 					if (t == 0){
 						v = minv;
 					}
@@ -106,33 +112,37 @@ double calculation(struct record p[15][15], int turn, int times,double a,double 
 						p[i][j].place = 0;
 					}
 
-
 					if (a < v){//找最大值
-						
 						a = v;
 					}
 					if (b < a){
-						left = 1;
 						break;
+						left = 1;
 					}
 				}
 			}
 		}
 		return a;
 	}
-	else if (turn == 0){
+	else if (turn == 0){             //玩家
 		for (i = 0; i < row; i++){
-
+			if (left == 1){
+				break;
+			}
 			for (j = 0; j < row; j++){
 				if (p[i][j].place == 0){
-					t = 0;
-					for (int m = -1; m < 2; m++) {
-						for (int n = -1; n < 2; n++) {
-							if (p[m + i][n + j].place != 0) {
-								t++;
+					if (num < 50){
+						t = 0;
+						for (int m = -1; m < 2; m++) {
+							for (int n = -1; n < 2; n++) {
+								if (p[m + i][n + j].place != 0) {
+									t++;
+								}
 							}
 						}
 					}
+					else    t = 1;
+				
 					if (t == 0){
 						v = maxv;
 					}
@@ -144,7 +154,7 @@ double calculation(struct record p[15][15], int turn, int times,double a,double 
 
 					if (b > v){//找最小值
 					
-						b = lastv;
+						b = v;
 					}
 					if (b < a)
 					{
@@ -321,7 +331,8 @@ int judge(struct record p[15][15]){
 void init(struct record p[15][15]){
 	change = 0;//黑白切换控制数
 	play = false;
-	chessr = 0, chessl = 0, chessx = 0, chessy = 0;
+	chessx = 0, chessy = 0;
+	num = 0;
 	for (int i = 0; i < 15; i++) {
 		for (int j = 0; j < 15; j++){
 			p[i][j].place = 0;
@@ -334,11 +345,11 @@ void init(struct record p[15][15]){
 
 
 
-double assess(struct record p[15][15])
+long double assess(struct record p[15][15])
 {
 	int i, j;
 	p_assess(p);     //某点价值评定
-	double sum = 0;
+	long double sum = 0;
 	for (i = 0; i < row; i++)
 	{
 		for (j = 0; j < row; j++)
@@ -361,11 +372,10 @@ void p_assess(struct record p[15][15]){
 			}
 			else  
 			{   
-				double v1 = V, v2 = V, v3 = V, v4 = V, v5 = V, v6 = V, v7 = V, v8 = V;
+				long double v1 = V, v2 = V, v3 = V, v4 = V, v5 = V, v6 = V, v7 = V, v8 = V;
 
-				for (x = 0, n = j; p[i][j].place != -p[i][n + 1].place && n + 1 < 15 && x < 4;)       //右
+				for (x = 0, n = j; p[i][j].place != -p[i][n + 1].place && n + 1 < 15 && x < 4;x++, n++)       //右
 				{
-					x++, n++;
 				}
 				if (x < 4)
 				{
@@ -377,9 +387,8 @@ void p_assess(struct record p[15][15]){
 						v1 *= V;
 					}
 				}
-				for (y = 0, n = j; p[i][j].place != -p[i][n - 1].place && n - 1 > 4 && y < 4; )      //左
+				for (y = 0, n = j; p[i][j].place != -p[i][n - 1].place && n > 0 && y < 4; y++, n--)      //左
 				{
-					y++, n--;
 				}
 				if (y < 4){
 					v2 = 0; 
@@ -391,7 +400,7 @@ void p_assess(struct record p[15][15]){
 					}
 				}
 
-				for (x = 0, n = i; p[i][j].place != -p[n + 1][j].place && n + 1 < 20 && x < 5; x++, n++)       //上
+				for (x = 0, n = i; p[i][j].place != -p[n + 1][j].place && n + 1 < 15 && x < 5; x++, n++)       //上
 				{
 				}
 				if (x < 4){
@@ -403,7 +412,7 @@ void p_assess(struct record p[15][15]){
 						v3 *= V; 
 					}
 				}
-				for (y = 0, n = i; p[i][j].place != -p[n - 1][j].place && n - 1 > 4 && y < 5; y++, n--)       //下
+				for (y = 0, n = i; p[i][j].place != -p[n - 1][j].place && n > 0 && y < 5; y++, n--)       //下
 				{
 				}
 				if (y < 4){
@@ -415,7 +424,7 @@ void p_assess(struct record p[15][15]){
 						v4 *= V; 
 					}
 				}
-				for (x = 0, m = i, n = j; p[i][j].place != -p[m - 1][n + 1].place && n + 1 < 20 && m - 1 > 4 && x < 5; x++, m--, n++) //右上
+				for (x = 0, m = i, n = j; p[i][j].place != -p[m - 1][n + 1].place && n + 1 < 15 && m >5 && x < 5; x++, m--, n++) //右上
 				{
 				}
 				if (x < 4){
@@ -427,7 +436,7 @@ void p_assess(struct record p[15][15]){
 						v5 *= V;
 					}
 				}
-				for (y = 0, m = i, n = j; p[i][j].place != -p[m + 1][n - 1].place && m + 1 < 20 && n - 1 > 4 && y < 5; y++, m++, n--) //左下
+				for (y = 0, m = i, n = j; p[i][j].place != -p[m + 1][n - 1].place && m + 1 < 15 && n > 0 && y < 5; y++, m++, n--) //左下
 				{
 				}
 				if (y < 4)
@@ -440,7 +449,7 @@ void p_assess(struct record p[15][15]){
 						v6 *= V; 
 					}
 				}
-				for (x = 0, m = i, n = j; p[i][j].place != -p[m - 1][n - 1].place && n - 1 > 4 && m - 1 > 4 && x < 5; x++, m--, n--)  //左上
+				for (x = 0, m = i, n = j; p[i][j].place != -p[m - 1][n - 1].place && n > 5 && m >5 && x < 5; x++, m--, n--)  //左上
 				{
 				}
 				if (x < 4)
@@ -453,7 +462,7 @@ void p_assess(struct record p[15][15]){
 						v7 *= V;
 					}
 				}
-				for (y = 0, m = i, n = j; p[i][j].place != -p[m + 1][n + 1].place && n + 1 < 20 && m + 1 < 20 && y < 5; y++, m++, n++) //右下
+				for (y = 0, m = i, n = j; p[i][j].place != -p[m + 1][n + 1].place && n + 1 < 15 && m + 1 < 15 && y < 5; y++, m++, n++) //右下
 				{
 				}
 				if (y < 4)
@@ -466,8 +475,7 @@ void p_assess(struct record p[15][15]){
 						v8 *= V; 
 					}
 				}
-				p[i][j].value 
-					= v1 + v2 + v3 + v4 + v5 + v6 + v7 + v8 + 0.1 * (15 - abs(i - 7) - abs(j - 7));    //加上距离中心优势分
+				p[i][j].value = v1 + v2 + v3 + v4 + v5 + v6 + v7 + v8 + 0.5 * (15 - abs(i - 7) - abs(j - 7));  
 				if (p[i][j].place == -1)   
 				{
 					p[i][j].value = -p[i][j].value * 10;    
@@ -495,6 +503,7 @@ void start(struct record p[15][15]){
 			AIgo(p);
 			pass = judge(p);
 			FINAL(pass);
+			num++;
 		}
 
 	}
