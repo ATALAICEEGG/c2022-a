@@ -55,6 +55,7 @@ int AIgo(struct record p[15][15]){
 				if (t != 0){
 					p[i][j].place = 1;
 					if (judge(p) == 1){
+
 						chessdown(1, i, j,p);
 						return 0;
 					}
@@ -167,8 +168,7 @@ void chessdown(int i, int a, int b, struct record p[15][15]){
 		setfillcolor(BLACK);
 		p[a][b].place = -1;
 		solidcircle(x, y, 20);
-		chessl = a;
-		chessr = b;
+	
 	}
 	else if(i==1){
 		setfillcolor(WHITE);
@@ -255,56 +255,61 @@ void FINAL(int a){
 
 
 int judge(struct record p[15][15]){
-	
-	for (int i = 0; i < 5; i++)//往左5个，往右匹配4个子，20种情况
-	{
-		if (chessr - i >= 0 && chessr - i + 4 < row &&
-			p[chessl][chessr - i].place == p[chessl][chessr - i + 1].place &&
-			p[chessl][chessr - i].place == p[chessl][chessr - i + 2].place &&
-			p[chessl][chessr - i].place == p[chessl][chessr - i + 3].place &&
-			p[chessl][chessr - i].place == p[chessl][chessr - i + 4].place){
-			if (p[chessl][chessr - i].place == -1)    return 2;
-			else if (p[chessl][chessr - i].place == 1)    return 1;
-		}
+	int m, n;
+	for (m = 0;m < row; m++){
+		for (n = 0; n < row; n++){
+			for (int i = 0; i < 5; i++)//往左5个，往右匹配4个子，20种情况
+			{
+				if (n - i >= 0 && n - i + 4 < row &&
+					p[m][n - i].place == p[m][n - i + 1].place &&
+					p[m][n - i].place == p[m][n - i + 2].place &&
+					p[m][n - i].place == p[m][n - i + 3].place &&
+					p[m][n - i].place == p[m][n - i + 4].place){
+					if (p[m][n - i].place == -1)    return 2;
+					else if (p[m][n - i].place == 1)    return 1;
+				}
 
+			}
+
+			for (int i = 0; i < 5; i++)//竖直方向(上下延伸4个)for (int i = 0; i < 5; i++)(
+			{
+				if (m - i >= 0 && m - i + 4 < row &&
+					p[m - i][n].place == p[m - i + 1][n].place &&
+					p[m - i][n].place == p[m - i + 2][n].place &&
+					p[m - i][n].place == p[m - i + 3][n].place &&
+					p[m - i][n].place == p[m - i + 4][n].place){
+					if (p[m - i][n].place == -1)    return 2;
+					else if (p[m - i][n].place == 1)   return 1;
+				}
+
+			}
+
+			for (int i = 0; i < 5; i++)//第[m+i]行，第[n-i]的棋子，与右上方连续4个棋子都相同
+			{
+				if (m + i < row  &&		m + i - 4 >= 0 && n - i >= 0 && n - i + 4 < row &&
+					p[m + i][n - i].place == p[m + i - 1][n - i + 1].place &&
+					p[m + i][n - i].place == p[m + i - 2][n - i + 2].place &&
+					p[m + i][n - i].place == p[m + i - 3][n - i + 3].place &&
+					p[m + i][n - i].place == p[m + i - 4][n - i + 4].place){
+					if (p[m + i][n - i].place == -1)    return 2;
+					else if (p[m + i][n - i].place == 1)   return 1;
+				}
+			}
+
+			for (int i = 0; i < 5; i++)//第[m+i]行，第[n-i]的棋子，与右上方连续4个棋子都相同
+			{
+				if (m - i + 4 < row &&		m - i >= 0 && n - i >= 0 && n - i + 4 < row &&
+					p[m - i][n - i].place == p[m - i + 1][n - i + 1].place &&
+					p[m - i][n - i].place == p[m - i + 2][n - i + 2].place &&
+					p[m - i][n - i].place == p[m - i + 3][n - i + 3].place &&
+					p[m - i][n - i].place == p[m - i + 4][n - i + 4].place){
+					if (p[m - i][n - i].place == -1)    return 2;
+					else if (p[m - i][n - i].place == 1)  return 1;
+				}
+			}
+		}
 	}
 
-	for (int i = 0; i < 5; i++)//竖直方向(上下延伸4个)for (int i = 0; i < 5; i++)(
-	{
-		if (chessl - i >= 0 && chessl - i + 4 < row &&
-			p[chessl - i][chessr].place == p[chessl - i + 1][chessr].place &&
-			p[chessl - i][chessr].place == p[chessl - i + 2][chessr].place &&
-			p[chessl - i][chessr].place == p[chessl - i + 3][chessr].place &&
-			p[chessl - i][chessr].place == p[chessl - i + 4][chessr].place){
-			if (p[chessl - i][chessr].place == -1)    return 2;
-			else if (p[chessl - i][chessr].place == 1)   return 1;
-		}
-
-	}
-
-	for (int i = 0; i < 5; i++)//第[chessl+i]行，第[chessr-i]的棋子，与右上方连续4个棋子都相同
-	{
-		if (chessl + i < row  &&		chessl + i - 4 >= 0 && chessr - i >= 0 && chessr - i + 4 < row &&
-			p[chessl + i][chessr - i].place == p[chessl + i - 1][chessr - i + 1].place &&
-			p[chessl + i][chessr - i].place == p[chessl + i - 2][chessr - i + 2].place &&
-			p[chessl + i][chessr - i].place == p[chessl + i - 3][chessr - i + 3].place &&
-			p[chessl + i][chessr - i].place == p[chessl + i - 4][chessr - i + 4].place){
-			if (p[chessl + i][chessr - i].place == -1)    return 2;
-			else if (p[chessl + i][chessr - i].place == 1)   return 1;
-		}
-	}
-
-	for (int i = 0; i < 5; i++)//第[chessl+i]行，第[chessr-i]的棋子，与右上方连续4个棋子都相同
-	{
-		if (chessl - i + 4 < row &&		chessl - i >= 0 && chessr - i >= 0 && chessr - i + 4 < row &&
-			p[chessl - i][chessr - i].place == p[chessl - i + 1][chessr - i + 1].place &&
-			p[chessl - i][chessr - i].place == p[chessl - i + 2][chessr - i + 2].place &&
-			p[chessl - i][chessr - i].place == p[chessl - i + 3][chessr - i + 3].place &&
-			p[chessl - i][chessr - i].place == p[chessl - i + 4][chessr - i + 4].place){
-			if (p[chessl - i][chessr - i].place == -1)    return 2;
-			else if  (p[chessl - i][chessr - i].place == 1)  return 1;
-		}
-	}
 
 	return 0;
 }
@@ -505,14 +510,12 @@ void search(MOUSEMSG msg, struct record p[15][15]){//把棋子下到格子上
 	r0 = msg.y / cell;/*算出棋子下在的左上角点第几行*/
 	y = r0*cell + side;
 
-	chessr = r0;
-	chessl = l0;
 	chessx = x;
 	chessy = y;
-	if (p[chessl][chessr].place == 0){//确认原地点无棋子-》下棋成功？
+	if (p[l0][r0].place == 0){//确认原地点无棋子-》下棋成功？
 
 		play = true;
-		chessdown(-1,chessr,chessl,p);
+		chessdown(-1,r0,l0,p);
 
 	}
 	else
